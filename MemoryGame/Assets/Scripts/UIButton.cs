@@ -9,7 +9,7 @@ public class UIButton : MonoBehaviour {
     private string targetMessage = null;
     public Color highlightColor = Color.cyan;
 
-    private void OnMouseOver() {
+    private void OnMouseEnter() {
         SpriteRenderer sprite = GetComponent<SpriteRenderer>();
         if (sprite != null) {
             sprite.color = highlightColor;
