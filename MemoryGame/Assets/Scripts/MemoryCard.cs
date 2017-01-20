@@ -4,8 +4,12 @@ using UnityEngine;
 
 public class MemoryCard : MonoBehaviour {
     [SerializeField]
-    private SceneController controller;
+    private SceneController controller = null;
+    [SerializeField]
+    private GameObject cardBack = null;
+
     private int _id;
+
 
 	// Use this for initialization
 	void Start () {
@@ -15,7 +19,7 @@ public class MemoryCard : MonoBehaviour {
 	void Update () {
 	}
 
-    private int id {
+    public int id {
         get { return _id;  }
     }
 
@@ -23,4 +27,16 @@ public class MemoryCard : MonoBehaviour {
         _id = id;
         GetComponent<SpriteRenderer>().sprite = image;
     }
+
+    private void OnMouseDown() {
+        if (cardBack.activeSelf && controller.canReveal) {
+            cardBack.SetActive(false);
+            controller.CardRevealed(this);
+        }
+    }
+
+    public void Unreveal() {
+        cardBack.SetActive(true);
+    }
+
 }

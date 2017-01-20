@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class SceneController : MonoBehaviour {
     public const int gridRows = 2;
@@ -12,6 +13,13 @@ public class SceneController : MonoBehaviour {
     private MemoryCard originalCard = null;
     [SerializeField]
     private Sprite[] images = null;
+
+    private MemoryCard _firstRevealed = null;
+    private MemoryCard _secondRevealed = null;
+
+    [SerializeField]
+    private TextMesh _scoreLabel = null;
+    private int _score = 0;
 
     // Use this for initialization
     void Start () {
@@ -39,9 +47,53 @@ public class SceneController : MonoBehaviour {
             }
         }
 	}
-	
-	// Update is called once per frame
-	void Update () {
-		
-	}
+
+    // Update is called once per frame
+    void Update() {
+    }
+
+    private int[] ShuffleArray(int[] numbers) {
+        int[] newArray = numbers.Clone() as int[];
+        for (int i = 0; i < newArray.Length; i++) {
+            int r = Random.Range(i, newArray.Length);
+            // swap
+            int tmp = newArray[i];
+            newArray[i] = newArray[r];
+            newArray[r] = tmp;
+        }
+        return newArray;
+    }
+
+    public bool canReveal {
+        get { return _secondRevealed == null; }
+    }
+
+    public void CardRevealed(MemoryCard card) {
+        if (_firstRevealed == null) {
+            _firstRevealed = card;
+        } else {
+            // second must be null
+            _secondRevealed = card;
+            StartCoroutine(CheckMatch());
+        }
+    }
+
+    private IEnumerator CheckMatch() {
+        if (_firstRevealed.id == _secondRevealed.id) {
+            _score++;
+            _scoreLabel.text = "Score: " + _score;
+        } else {
+            yield return new WaitForSeconds(0.5f);
+
+            _firstRevealed.Unreveal();
+            _secondRevealed.Unreveal();
+        }
+
+        _firstRevealed = null;
+        _secondRevealed = null;
+    }
+
+    public void Restart() {
+        SceneManager.LoadScene("MemoryGame");
+    }
 }
