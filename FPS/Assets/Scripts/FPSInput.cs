@@ -5,14 +5,16 @@ using UnityEngine;
 [RequireComponent(typeof(CharacterController))]
 [AddComponentMenu("Control Script/FPS Input")]
 public class FPSInput : MonoBehaviour {
-    public float speed = 6.0f;
+    public const float baseSpeed = 6.0f;
+    public float speed = 0;
     public float gravity = -9.8f;
     private CharacterController _charController;
 
     // Use this for initialization
     void Start () {
         _charController = GetComponent<CharacterController>();
-	}
+        speed = baseSpeed * PlayerPrefs.GetFloat("speed", 1);
+    }
 	
 	// Update is called once per frame
 	void Update () {
@@ -26,4 +28,16 @@ public class FPSInput : MonoBehaviour {
         movement.y = gravity;
         _charController.Move(movement);
 	}
+
+    private void Awake() {
+        Messenger<float>.AddListener(GameEvent.SPEED_CHANGED, OnSpeedChanged);
+    }
+
+    private void OnDestroy() {
+        Messenger<float>.RemoveListener(GameEvent.SPEED_CHANGED, OnSpeedChanged);
+    }
+
+    private void OnSpeedChanged(float value) {
+        speed = baseSpeed * value;
+    }
 }

@@ -5,17 +5,19 @@ using UnityEngine;
 public class WanderingAI : MonoBehaviour {
     [SerializeField] private GameObject fireballPrefab = null; // assignment in editor
     private GameObject _fireball;
-    public float speed = 3.0f;
+    public const float baseSpeed = 3.0f;
+    public float speed = 0;
     public float obstacleRange = 5.0f;
     private bool _alive;
 
 	// Use this for initialization
 	void Start () {
         _alive = true;
+        speed = baseSpeed * PlayerPrefs.GetFloat("speed", 1);
     }
-	
-	// Update is called once per frame
-	void Update () {
+
+    // Update is called once per frame
+    void Update () {
         if (!_alive) {
             return; 
         }
@@ -43,5 +45,17 @@ public class WanderingAI : MonoBehaviour {
 
     public void setAlive(bool alive) {
         _alive = alive;
+    }
+
+    private void Awake() {
+        Messenger<float>.AddListener(GameEvent.SPEED_CHANGED, OnSpeedChanged);
+    }
+
+    private void OnDestroy() {
+        Messenger<float>.RemoveListener(GameEvent.SPEED_CHANGED, OnSpeedChanged);
+    }
+
+    private void OnSpeedChanged(float value) {
+        speed = baseSpeed * value;
     }
 }
