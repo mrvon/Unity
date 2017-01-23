@@ -4534,7 +4534,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ec6f84fa202c4f34ea73d2b671a7c0fc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  axes: 0
+  axes: 1
   sensitivityHor: 5
   sensitivityVert: 5
   minimumVert: -45
