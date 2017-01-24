@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class OrbitCamera : MonoBehaviour {
     [SerializeField]
-    private Transform target;
+    private Transform target = null;
 
     public float rotateSpeed = 1.5f;
 
