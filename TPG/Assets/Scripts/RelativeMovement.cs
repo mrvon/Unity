@@ -30,8 +30,9 @@ public class RelativeMovement : MonoBehaviour {
         float horInput = Input.GetAxis("Horizontal");
         float vertInput = Input.GetAxis("Vertical");
         if (horInput != 0 || vertInput != 0) {
-            movement.x = horInput;
-            movement.z = vertInput;
+            movement.x = horInput * moveSpeed;
+            movement.z = vertInput * moveSpeed;
+            movement = Vector3.ClampMagnitude(movement, moveSpeed);
 
             Quaternion tmp = target.rotation;
             target.eulerAngles = new Vector3(0, target.eulerAngles.y, 0);
@@ -41,10 +42,6 @@ public class RelativeMovement : MonoBehaviour {
             Quaternion direction = Quaternion.LookRotation(movement);
             transform.rotation = Quaternion.Lerp(transform.rotation,
                 direction, rotSpeed * Time.deltaTime);
-
-            movement.x = horInput * moveSpeed;
-            movement.z = vertInput * moveSpeed;
-            movement = Vector3.ClampMagnitude(movement, moveSpeed);
         }
 
         if (_charController.isGrounded) {
