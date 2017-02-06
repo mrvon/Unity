@@ -2,11 +2,21 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+// 3rd-person movement that picks direction relative to target (usually the camera)
+// commented lines demonstrate snap to direction and without ground raycast
+//
+// To setup animated character create an animation controller with states for idle, running, jumping
+// transition between idle and running based on added Speed float, set those not atomic so that they can be overridden by...
+// transition both idle and running to jump based on added Jumping boolean, transition back to idle
+
 [RequireComponent(typeof(CharacterController))]
 public class RelativeMovement : MonoBehaviour {
     [SerializeField]
     private Transform target = null;
+
     private CharacterController _charController;
+    private ControllerColliderHit _contact;
+    private Animator _animator;
 
     public float rotSpeed = 15.0f;
     public float moveSpeed = 6.0f;
@@ -20,13 +30,17 @@ public class RelativeMovement : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
         _charController = GetComponent<CharacterController>();
+        _animator = GetComponent<Animator>();
         _vertSpeed = minFall;
 	}
 	
 	// Update is called once per frame
+
 	void Update () {
+        // start with zero and add movement components progressively
         Vector3 movement = Vector3.zero;
 
+        // x z movement transformed relative to target
         float horInput = Input.GetAxis("Horizontal");
         float vertInput = Input.GetAxis("Vertical");
         if (horInput != 0 || vertInput != 0) {
@@ -43,17 +57,41 @@ public class RelativeMovement : MonoBehaviour {
             transform.rotation = Quaternion.Lerp(transform.rotation,
                 direction, rotSpeed * Time.deltaTime);
         }
+        _animator.SetFloat("Speed", movement.sqrMagnitude);
 
-        if (_charController.isGrounded) {
+        // raycast down to address steep slopes and dropoff edge
+        bool hitGround = false;
+        RaycastHit hit;
+        if (_vertSpeed < 0 && Physics.Raycast(transform.position, Vector3.down, out hit)) {
+            float check = (_charController.height + _charController.radius) / 1.9f;
+            hitGround = hit.distance <= check;
+        }
+        // y movement: possibly jump impulse up, always accel down
+        // could _charController.isGrounded instead, but then cannot workaround dropoff edge
+        if (hitGround) {
             if (Input.GetButtonDown("Jump")) {
                 _vertSpeed = jumpSpeed;
             } else {
                 _vertSpeed = minFall;
+                _animator.SetBool("Jumping", false);
             }
         } else {
             _vertSpeed += gravity * 5 * Time.deltaTime;
             if (_vertSpeed < terminalVelocity) {
                 _vertSpeed = terminalVelocity;
+            }
+
+            if (_contact != null) { // not right at level start
+                _animator.SetBool("Jumping", true);
+            }
+
+            // workaround for standing on dropoff edge
+            if (_charController.isGrounded) {
+                if(Vector3.Dot(movement, _contact.normal) < 0) {
+                    movement = _contact.normal * moveSpeed;
+                } else {
+                    movement += _contact.normal * moveSpeed;
+                }
             }
         }
         movement.y = _vertSpeed;
@@ -61,4 +99,9 @@ public class RelativeMovement : MonoBehaviour {
         movement *= Time.deltaTime;
         _charController.Move(movement);
 	}
+
+    // store collision to use in Update
+    void OnControllerColliderHit(ControllerColliderHit hit) {
+        _contact = hit;
+    }
 }
